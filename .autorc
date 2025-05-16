@@ -1,7 +1,7 @@
 {
   "plugins": ["npm", "first-time-contributor", "released"],
   "owner": "Rascal-Coder",
-  "repo": "Xpress-UI",
+  "repo": "XpressUI",
   "name": "Rascal-Coder",
   "email": "menoqiqio@gmail.com"
 }
