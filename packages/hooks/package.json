@@ -1,0 +1,15 @@
+{
+  "name": "@repo/hooks",
+  "version": "0.1.0",
+  "license": "MIT",
+  "dependencies": {
+    "ahooks": "^3.8.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "extends": ["ultracite"],
+  "files": {
+    "ignore": [
+      "packages/@core/shadcn-ui/components/ui/**",
+      "packages/@core/shadcn-ui/lib/**",
+      "packages/@core/shadcn-ui/hooks/**",
+      "packages/@core/design/**",
+      "scripts/**",
+      "internal/**",
+      "xpress.code-workspace"
+    ]
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "noUnusedTemplateLiteral": "off"
+      }
+    }
+  }
+}

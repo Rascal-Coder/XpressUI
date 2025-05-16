@@ -1,0 +1,27 @@
+{
+  "name": "@repo/scroll-area",
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "#build": "pnpm unbuild",
+    "#prepublishOnly": "npm run build"
+  },
+  "files": ["dist"],
+  "sideEffects": ["**/*.css"],
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "dependencies": {
+    "@repo/shadcn-ui": "workspace:*",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  },
+  "#main": "./dist/index.mjs",
+  "#module": "./dist/index.mjs"
+}

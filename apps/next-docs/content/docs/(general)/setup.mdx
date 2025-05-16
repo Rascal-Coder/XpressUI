@@ -1,0 +1,38 @@
+---
+title: Setup
+description: How to install and set up Xpress-UI components in your project
+icon: Code
+---
+
+## Prerequisites
+
+Before installing Xpress-UI, make sure you have the following prerequisites:
+
+- [Node.js](https://nodejs.org/en/download/), version 18 or later
+- A [React](https://reactjs.org/docs/getting-started.html) project, version 18 or later
+- [shadcn/ui](https://ui.shadcn.com/) installed in your project
+
+
+<Callout type="warning">
+Note: If you haven’t installed shadcn/ui yet, you should do that first. Follow the official shadcn/ui setup instructions to configure Tailwind CSS and the base components. Kibo UI builds on that foundation, so having shadcn in place is required.
+</Callout>
+
+<Callout type="info">
+  Xpress-UI currently only supports the CSS Variables version of shadcn/ui
+</Callout>
+
+## Installation
+
+You can install Xpress-UI components using either the `xpress-ui` or `shadcn` CLI e.g.
+<Installer packageName="{package}" />
+
+
+
+This will install the component into your project at `@/components/xpress-ui/{package}` (or the relevant folder you specified in the `components.json` file).
+
+## Usage
+
+After installing a Xpress-UI component, you can start using it in your React application.
+
+For example, check out the [Gantt Chart](/gantt) component.
+

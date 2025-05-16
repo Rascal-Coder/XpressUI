@@ -1,0 +1,21 @@
+{
+  "name": "@repo/drawer",
+  "version": "0.1.0",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@radix-ui/react-visually-hidden": "^1.2.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "@repo/hooks": "workspace:*",
+    "@repo/icons": "workspace:*",
+    "@repo/shadcn-ui": "workspace:*",
+    "@repo/tooltip": "workspace:*",
+    "@repo/loading": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

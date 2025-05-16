@@ -1,0 +1,40 @@
+{
+  "folders": [
+    {
+      "name": "xpress-ui-docs",
+      "path": "apps/next-docs",
+    },
+    {
+      "name": "@xpress/node-utils",
+      "path": "internal/node-utils",
+    },
+    {
+      "name": "@xpress/tsconfig",
+      "path": "internal/tsconfig",
+    },
+    {
+      "name": "@xpress/vite-config",
+      "path": "internal/vite-config",
+    },
+    {
+      "name": "@repo/scroll-area",
+      "path": "packages/scroll-area",
+    },
+    {
+      "name": "@repo/shadcn-ui",
+      "path": "packages/shadcn-ui",
+    },
+    {
+      "name": "@repo/theme-font-select",
+      "path": "packages/theme-font-select",
+    },
+    {
+      "name": "@xpress/cli",
+      "path": "scripts/cli",
+    },
+    {
+      "name": "@xpress/turbo-run",
+      "path": "scripts/turbo-run",
+    },
+  ],
+}
