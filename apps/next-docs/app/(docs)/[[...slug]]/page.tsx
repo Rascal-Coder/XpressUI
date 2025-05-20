@@ -11,8 +11,8 @@ import { } from 'react';
 import { DraggableThemeControl } from '../../../components/DraggableThemeControl';
 import { Header } from '../../../components/header';
 import { Installer } from '../../../components/installer';
+import { Preview } from '../../../components/preview';
 import { source } from '../../../lib/source';
-import { Preview } from '../../Preview';
 type PageProps = {
   params: Promise<{ slug?: string[] }>;
 };

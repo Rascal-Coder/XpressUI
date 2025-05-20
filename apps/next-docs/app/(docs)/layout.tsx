@@ -31,7 +31,7 @@ const Layout = ({ children }: LayoutProps) => {
             </div>
           </>
         ),
-        mode: 'auto',
+        mode: 'top',
       }}
     >
       {children}

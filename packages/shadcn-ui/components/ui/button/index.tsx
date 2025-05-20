@@ -374,8 +374,7 @@ export type ButtonShape = NonNullable<ButtonVariants['shape']>;
 export type ButtonSize = NonNullable<ButtonVariants['size']>;
 
 export interface ButtonProps
-  extends React.ComponentProps<'button'>,
-  ButtonVariants {
+  extends React.ComponentProps<'button'> {
   /**
    * 用于显示在按钮结束位置的图标
    */
@@ -392,6 +391,26 @@ export interface ButtonProps
    * 用于显示在按钮开始位置的图标
    */
   startIcon?: React.ReactNode;
+  /**
+   * 按钮颜色
+   */
+  buttonColor?: ButtonColor;
+  /**
+   * 按钮阴影
+   */
+  shadow?: ButtonShadow;
+  /**
+   * 按钮形状
+   */
+  shape?: ButtonShape;
+  /**
+   * 按钮大小
+   */
+  size?: ButtonSize;
+  /**
+   * 按钮变体
+   */
+  variant?: ButtonVariant;
 }
 
 function Button({
