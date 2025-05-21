@@ -1,7 +1,7 @@
 'use client';
-import { Button } from '@/components/ui/button';
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { Button } from '@repo/button';
 import { Braces, MoonStar, RotateCcw, Sun, SunMoon } from "@repo/icons";
 import { XpressTooltip } from '@repo/tooltip';
 import { useCallback, useEffect, useMemo, useState } from 'react';

@@ -1,4 +1,3 @@
-import { Button as XpressButton } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -9,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { Button as XpressButton } from "@repo/button"
 import { Expand, Shrink } from '@repo/icons';
 import { XpressLoading } from '@repo/loading';
 import { XpressHelpTooltip } from '@repo/tooltip';

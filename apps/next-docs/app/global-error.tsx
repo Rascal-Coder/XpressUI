@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@repo/button';
 import type NextError from 'next/error';
 type GlobalErrorProperties = {
   readonly error: NextError & { digest?: string };

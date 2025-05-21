@@ -1,246 +1,250 @@
 import type { VariantProps } from 'tailwind-variants';
 
-// @unocss-include
+import { cn } from "@repo/shadcn-ui/lib/utils"
+
+import { LoaderCircle } from '@repo/icons';
+import type * as React from 'react';
+import { useMemo } from 'react';
 import { tv } from 'tailwind-variants';
 
-export const buttonVariants = tv({
+const buttonVariants = tv({
   base: [
     'inline-flex items-center justify-center font-medium transition-all-200',
-    'focus-visible:(outline-none ring-2 ring-offset-2 ring-offset-background) disabled:(pointer-events-none opacity-50)',
   ],
   compoundVariants: [
     {
-      class: `bg-destructive text-destructive-foreground hover:bg-destructive/80 active:bg-destructive-600`,
-      color: 'destructive',
+      buttonColor: 'destructive',
+      class: `bg-destructive text-destructive-foreground hover:bg-destructive/80 active:bg-destructive-active`,
       variant: 'solid',
     },
     {
+      buttonColor: 'success',
       class: `bg-success text-success-foreground hover:bg-success/80 active:bg-success-600`,
-      color: 'success',
       variant: 'solid',
     },
     {
+      buttonColor: 'warning',
       class: `bg-warning text-warning-foreground hover:bg-warning/80 active:bg-warning-600`,
-      color: 'warning',
       variant: 'solid',
     },
     {
+      buttonColor: 'info',
       class: `bg-info text-info-foreground hover:bg-info/80 active:bg-info-600`,
-      color: 'info',
       variant: 'solid',
     },
     {
+      buttonColor: 'carbon',
       class: `bg-carbon text-carbon-foreground hover:bg-carbon/80 active:bg-carbon-600`,
-      color: 'carbon',
       variant: 'solid',
     },
     {
+      buttonColor: 'secondary',
       class: `bg-secondary text-secondary-foreground hover:bg-secondary/80 active:bg-secondary-foreground/20`,
-      color: 'secondary',
       variant: 'solid',
     },
     {
+      buttonColor: 'accent',
       class: `bg-accent text-accent-foreground hover:bg-accent/80 active:bg-accent-foreground/20`,
-      color: 'accent',
       variant: 'solid',
     },
     {
+      buttonColor: 'primary',
       class: 'text-primary',
-      color: 'primary',
       variant: ['outline', 'dashed', 'soft', 'ghost', 'link'],
     },
     {
+      buttonColor: 'destructive',
       class: 'text-destructive',
-      color: 'destructive',
       variant: ['outline', 'dashed', 'soft', 'ghost', 'link'],
     },
     {
+      buttonColor: 'success',
       class: 'text-success',
-      color: 'success',
       variant: ['outline', 'dashed', 'soft', 'ghost', 'link'],
     },
     {
+      buttonColor: 'warning',
       class: 'text-warning',
-      color: 'warning',
       variant: ['outline', 'dashed', 'soft', 'ghost', 'link'],
     },
     {
+      buttonColor: 'info',
       class: 'text-info',
-      color: 'info',
       variant: ['outline', 'dashed', 'soft', 'ghost', 'link'],
     },
     {
+      buttonColor: 'carbon',
       class: 'text-carbon',
-      color: 'carbon',
       variant: ['outline', 'dashed', 'soft', 'ghost', 'link'],
     },
     {
+      buttonColor: 'secondary',
       class: 'text-secondary-foreground',
-      color: 'secondary',
       variant: ['outline', 'dashed', 'soft', 'ghost', 'link'],
     },
     {
+      buttonColor: 'accent',
       class: 'text-accent-foreground',
-      color: 'accent',
       variant: ['outline', 'dashed', 'soft', 'ghost', 'link'],
     },
     {
+      buttonColor: 'primary',
       class: 'hover:bg-primary/10 active:bg-primary/20',
-      color: 'primary',
       variant: ['outline', 'dashed', 'ghost'],
     },
     {
+      buttonColor: 'destructive',
       class: 'hover:bg-destructive/10 active:bg-destructive/20',
-      color: 'destructive',
       variant: ['outline', 'dashed', 'ghost'],
     },
     {
+      buttonColor: 'success',
       class: 'hover:bg-success/10 active:bg-success/20',
-      color: 'success',
       variant: ['outline', 'dashed', 'ghost'],
     },
     {
+      buttonColor: 'warning',
       class: 'hover:bg-warning/10 active:bg-warning/20',
-      color: 'warning',
       variant: ['outline', 'dashed', 'ghost'],
     },
     {
+      buttonColor: 'info',
       class: 'hover:bg-info/10 active:bg-info/20',
-      color: 'info',
       variant: ['outline', 'dashed', 'ghost'],
     },
     {
+      buttonColor: 'carbon',
       class: 'hover:bg-carbon/10 active:bg-carbon/20',
-      color: 'carbon',
       variant: ['outline', 'dashed', 'ghost'],
     },
     {
+      buttonColor: 'secondary',
       class:
         'hover:bg-secondary-foreground/10 active:bg-secondary-foreground/20',
-      color: 'secondary',
       variant: ['outline', 'dashed', 'ghost'],
     },
     {
+      buttonColor: 'accent',
       class: 'hover:bg-accent-foreground/10 active:bg-accent-foreground/20',
-      color: 'accent',
       variant: ['outline', 'dashed', 'ghost'],
     },
     {
-      class: 'hover:(border-primary text-primary)',
-      color: 'primary',
+      buttonColor: 'primary',
+      class: 'hover:border-primary hover:text-primary',
       variant: 'plain',
     },
     {
-      class: 'hover:(border-destructive text-destructive)',
-      color: 'destructive',
+      buttonColor: 'destructive',
+      class: 'hover:border-destructive hover:text-destructive',
       variant: 'plain',
     },
     {
-      class: 'hover:(border-success text-success)',
-      color: 'success',
+      buttonColor: 'success',
+      class: 'hover:border-success hover:text-success',
       variant: 'plain',
     },
     {
-      class: 'hover:(border-warning text-warning)',
-      color: 'warning',
+      buttonColor: 'warning',
+      class: 'hover:border-warning hover:text-warning',
       variant: 'plain',
     },
     {
-      class: 'hover:(border-info text-info)',
-      color: 'info',
+      buttonColor: 'info',
+      class: 'hover:border-info hover:text-info',
       variant: 'plain',
     },
     {
-      class: 'hover:(border-carbon text-carbon)',
-      color: 'carbon',
+      buttonColor: 'carbon',
+      class: 'hover:border-carbon hover:text-carbon',
       variant: 'plain',
     },
     {
-      class: 'hover:(border-secondary-foreground text-secondary-foreground)',
-      color: 'secondary',
+      buttonColor: 'secondary',
+      class:
+        'hover:border-secondary-foreground hover:text-secondary-foreground',
       variant: 'plain',
     },
     {
-      class: 'hover:(border-accent-foreground text-accent-foreground)',
-      color: 'accent',
+      buttonColor: 'accent',
+      class: 'hover:border-accent-foreground hover:text-accent-foreground',
       variant: 'plain',
     },
     {
+      buttonColor: 'primary',
       class: 'border-primary',
-      color: 'primary',
       variant: ['outline', 'dashed'],
     },
     {
+      buttonColor: 'destructive',
       class: 'border-destructive',
-      color: 'destructive',
       variant: ['outline', 'dashed'],
     },
     {
+      buttonColor: 'success',
       class: 'border-success',
-      color: 'success',
       variant: ['outline', 'dashed'],
     },
     {
+      buttonColor: 'warning',
       class: 'border-warning',
-      color: 'warning',
       variant: ['outline', 'dashed'],
     },
     {
+      buttonColor: 'info',
       class: 'border-info',
-      color: 'info',
       variant: ['outline', 'dashed'],
     },
     {
+      buttonColor: 'carbon',
       class: 'border-carbon',
-      color: 'carbon',
       variant: ['outline', 'dashed'],
     },
     {
+      buttonColor: 'secondary',
       class: 'border-secondary-foreground',
-      color: 'secondary',
       variant: ['outline', 'dashed'],
     },
     {
+      buttonColor: 'accent',
       class: 'border-accent-foreground',
-      color: 'accent',
       variant: ['outline', 'dashed'],
     },
     {
+      buttonColor: 'destructive',
       class:
         'bg-destructive/10 hover:bg-destructive/10 active:bg-destructive/20',
-      color: 'destructive',
       variant: 'soft',
     },
     {
+      buttonColor: 'success',
       class: 'bg-success/10 hover:bg-success/10 active:bg-success/20',
-      color: 'success',
       variant: 'soft',
     },
     {
+      buttonColor: 'warning',
       class: 'bg-warning/10 hover:bg-warning/10 active:bg-warning/20',
-      color: 'warning',
       variant: 'soft',
     },
     {
+      buttonColor: 'info',
       class: 'bg-info/10 hover:bg-info/10 active:bg-info/20',
-      color: 'info',
       variant: 'soft',
     },
     {
+      buttonColor: 'carbon',
       class: 'bg-carbon/10 hover:bg-carbon/10 active:bg-carbon/20',
-      color: 'carbon',
       variant: 'soft',
     },
     {
+      buttonColor: 'secondary',
       class:
         'bg-secondary-foreground/10 hover:bg-secondary-foreground/10 active:bg-secondary-foreground/20',
-      color: 'secondary',
       variant: 'soft',
     },
     {
+      buttonColor: 'accent',
       class:
         'bg-accent-foreground/10 hover:bg-accent-foreground/10 active:bg-accent-foreground/20',
-      color: 'accent',
       variant: 'soft',
     },
     {
@@ -305,7 +309,7 @@ export const buttonVariants = tv({
     },
   ],
   defaultVariants: {
-    color: 'primary',
+    buttonColor: 'primary',
     fitContent: false,
     shadow: 'sm',
     shape: 'auto',
@@ -313,7 +317,7 @@ export const buttonVariants = tv({
     variant: 'solid',
   },
   variants: {
-    color: {
+    buttonColor: {
       accent: `focus-visible:ring-accent-foreground/20`,
       carbon: `focus-visible:ring-carbon`,
       destructive: `focus-visible:ring-destructive`,
@@ -324,7 +328,10 @@ export const buttonVariants = tv({
       warning: `focus-visible:ring-warning`,
     },
     fitContent: {
-      true: 'size-fit! p-0.5',
+      true: 'w-fit! h-fit! p-0.5',
+    },
+    isLoading: {
+      true: 'relative cursor-wait',
     },
     shadow: {
       lg: 'shadow-lg',
@@ -334,17 +341,18 @@ export const buttonVariants = tv({
     },
     shape: {
       auto: 'rounded-md',
-      circle: 'h-8 w-8 p-0 gap-0 rounded-full',
+      circle:
+        'aspect-square !p-0  rounded-full flex items-center justify-center',
       rounded: 'rounded-full',
-      square: 'h-8 w-8 p-0 gap-0 rounded-md',
+      square: 'aspect-square !p-0  rounded-md flex items-center justify-center',
     },
     size: {
-      '2xl': 'h-12 px-10 gap-6 text-xl',
-      lg: 'h-9 px-6 gap-4 text-base',
-      md: 'h-8 px-4 gap-3 text-sm',
-      sm: 'h-7 px-2 gap-2 text-xs',
-      xl: 'h-10 px-8 gap-5 text-lg',
-      xs: 'h-6 px-1.5 gap-1 text-2xs',
+      '2xl': 'h-12 px-10 gap-6 text-xl [&_svg]:size-6',
+      lg: 'h-9 px-6 gap-4 text-base [&_svg]:size-5',
+      md: 'h-8 px-4 gap-3 text-sm [&_svg]:size-5',
+      sm: 'h-7 px-2 gap-2 text-xs [&_svg]:size-4',
+      xl: 'h-10 px-8 gap-5 text-lg [&_svg]:size-6',
+      xs: 'h-6 px-1.5 gap-1 text-2xs [&_svg]:size-3',
     },
     variant: {
       dashed: 'border border-dashed bg-background',
@@ -360,10 +368,105 @@ export const buttonVariants = tv({
   },
 });
 
-type ButtonVariants = VariantProps<typeof buttonVariants>;
-
+export type ButtonVariants = VariantProps<typeof buttonVariants>;
+export type ButtonColor = NonNullable<ButtonVariants['buttonColor']>;
 export type ButtonVariant = NonNullable<ButtonVariants['variant']>;
-
-export type ButtonShape = NonNullable<ButtonVariants['shape']>;
-
 export type ButtonShadow = NonNullable<ButtonVariants['shadow']>;
+export type ButtonShape = NonNullable<ButtonVariants['shape']>;
+export type ButtonSize = NonNullable<ButtonVariants['size']>;
+
+export interface ButtonProps
+  extends React.ComponentProps<'button'> {
+  /**
+   * 用于显示在按钮结束位置的图标
+   */
+  endIcon?: React.ReactNode;
+  /**
+   * 是否处于加载状态
+   */
+  isLoading?: boolean;
+  /**
+   * 加载状态时显示的组件
+   */
+  loadingIndicator?: React.ReactNode;
+  /**
+   * 用于显示在按钮开始位置的图标
+   */
+  startIcon?: React.ReactNode;
+  /**
+   * 按钮颜色
+   */
+  buttonColor?: ButtonColor;
+  /**
+   * 按钮阴影
+   */
+  shadow?: ButtonShadow;
+  /**
+   * 按钮形状
+   */
+  shape?: ButtonShape;
+  /**
+   * 按钮大小
+   */
+  size?: ButtonSize;
+  /**
+   * 按钮变体
+   */
+  variant?: ButtonVariant;
+}
+
+function Button({
+  buttonColor,
+  className,
+  endIcon,
+  isLoading,
+  loadingIndicator,
+  shadow = 'sm',
+  shape,
+  size,
+  startIcon,
+  variant,
+  children,
+  ...props
+}: ButtonProps) {
+  const loadingIndicatorRender = useMemo(() => {
+    return loadingIndicator || <LoaderCircle className="size-4 animate-spin" />;
+  }, [loadingIndicator]);
+  return (
+    <button
+      className={cn(
+        "cursor-pointer",
+        buttonVariants({
+          buttonColor,
+          className,
+          isLoading,
+          shadow,
+          shape,
+          size,
+          variant,
+        }),
+
+      )}
+      data-slot="button"
+      disabled={isLoading || props.disabled}
+      {...props}
+    >
+      {isLoading && (
+        <span className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2">
+          {loadingIndicatorRender}
+        </span>
+      )}
+      <span
+        className={cn('flex items-center justify-center gap-2', {
+          'opacity-0': isLoading && loadingIndicatorRender,
+        })}
+      >
+        {startIcon && <span className="button-icon">{startIcon}</span>}
+        {children}
+        {endIcon && <span className="button-icon">{endIcon}</span>}
+      </span>
+    </button>
+  );
+}
+
+export { Button, buttonVariants };

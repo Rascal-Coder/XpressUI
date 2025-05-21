@@ -1,38 +1,97 @@
 ---
 title: Setup
-description: How to install and set up Xpress-UI components in your project
+description: 如何在您的项目中安装和设置 Xpress-UI 组件
 icon: Code
 ---
 
-## Prerequisites
+## 前置要求
 
-Before installing Xpress-UI, make sure you have the following prerequisites:
+在安装 Xpress-UI 之前，请确保您具备以下前置条件：
 
-- [Node.js](https://nodejs.org/en/download/), version 18 or later
-- A [React](https://reactjs.org/docs/getting-started.html) project, version 18 or later
-- [shadcn/ui](https://ui.shadcn.com/) installed in your project
+- [Node.js](https://nodejs.org/en/download/)，版本 18 或更高
+- [React](https://reactjs.org/docs/getting-started.html) 项目，版本 18 或更高
+- 项目中已安装 [shadcn/ui](https://ui.shadcn.com/)
 
 
 <Callout type="warning">
-Note: If you haven’t installed shadcn/ui yet, you should do that first. Follow the official shadcn/ui setup instructions to configure Tailwind CSS and the base components. Kibo UI builds on that foundation, so having shadcn in place is required.
+注意：如果您尚未安装 shadcn/ui，请先完成安装。按照官方 [shadcn/ui](https://ui.shadcn.com/docs/installation) 设置说明配置 Tailwind CSS 和基础组件。Xpress UI 建立在这个基础之上，因此必须先安装 shadcn。
 </Callout>
 
 <Callout type="info">
-  Xpress-UI currently only supports the CSS Variables version of shadcn/ui
+  Xpress-UI 目前仅支持 shadcn/ui 的 CSS 变量版本
 </Callout>
 
-## Installation
+## 安装
 
-You can install Xpress-UI components using either the `xpress-ui` or `shadcn` CLI e.g.
+您可以使用 `xpress-ui` 或 `shadcn` CLI 安装 Xpress-UI 组件，例如：
 <Installer packageName="{package}" />
+这将把组件安装到您项目的 `@/components/xpress-ui/{package}` 目录下（或您在 `components.json` 文件中指定的相关文件夹）。
+
+## 自定义主题
+
+XpressUI 提供了一个强大的主题定制系统，允许您完全自定义应用的外观。您可以通过主题设置面板轻松调整各种视觉元素。
+
+### 主题模式
+
+系统支持三种主题模式：
+
+- **浅色模式**：明亮、清爽的界面风格
+- **深色模式**：护眼、舒适的暗色界面
+- **跟随系统**：自动匹配系统主题设置
+
+### 颜色定制
+
+您可以自定义以下颜色组：
+
+- **主要颜色（Primary Colors）**
+  - 主色调（Primary）
+  - 主色调前景色（Primary Foreground）
+
+- **边框颜色（Border Colors）**
+  - 边框（Border）
+  - 输入框（Input）
+  - 焦点环（Ring）
+
+- **柔和颜色（Muted Colors）**
+  - 柔和背景（Muted）
+  - 柔和前景（Muted Foreground）
+
+- **强调色（Accent Colors）**
+  - 强调色（Accent）
+  - 强调前景色（Accent Foreground）
+
+- **卡片颜色（Card Colors）**
+  - 卡片背景（Card）
+  - 卡片前景（Card Foreground）
+
+- **次要颜色（Secondary Colors）**
+  - 次要色（Secondary）
+  - 次要前景色（Secondary Foreground）
+
+- **警示颜色（Destructive Colors）**
+  - 警示色（Destructive）
+  - 警示前景色（Destructive Foreground）
+
+- **弹出层颜色（Popover Colors）**
+  - 弹出层背景（Popover）
+  - 弹出层前景（Popover Foreground）
+
+### 字体设置
+
+您可以自定义三种字体类型：
+
+- **无衬线字体（Sans-Serif）**：用于主要文本内容
+- **衬线字体（Serif）**：用于标题和强调文本
+- **等宽字体（Monospace）**：用于代码和等宽文本
+
+### 主题代码
+
+您可以通过点击主题设置面板中的"Code"按钮查看当前主题的 CSS 代码。这些代码可以直接复制到您的项目中使用。
 
 
+## 使用方法
 
-This will install the component into your project at `@/components/xpress-ui/{package}` (or the relevant folder you specified in the `components.json` file).
+安装 Xpress-UI 组件后，您就可以在 React 应用程序中开始使用它了。
 
-## Usage
-
-After installing a Xpress-UI component, you can start using it in your React application.
-
-For example, check out the [Gantt Chart](/gantt) component.
+例如，查看 [甘特图](/gantt) 组件。
 

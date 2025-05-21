@@ -1,8 +1,6 @@
 
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
-// biome-ignore lint/correctness/noUnusedImports: <explanation>
-import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 interface LoadingProps {

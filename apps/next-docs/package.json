@@ -10,6 +10,8 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "@repo/button": "workspace:*",
+    "@repo/code-block": "workspace:*",
     "@repo/drawer": "workspace:*",
     "@repo/icons": "workspace:*",
     "@repo/modal": "workspace:*",
@@ -25,8 +27,6 @@
     "fumadocs-ui": "15.3.2",
     "geist": "^1.4.1",
     "next": "15.3.2",
-    "next-themes": "^0.4.6",
-    "radash": "^12.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sonner": "^2.0.3",

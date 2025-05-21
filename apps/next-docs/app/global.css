@@ -7,7 +7,7 @@
 
 @source '../node_modules/fumadocs-ui/dist/**/*.js';
 @source '../node_modules/shadcn-ui/**/*.{js,jsx,ts,tsx}';
-@source '../node_modules/@repo/*/**/*.{js,jsx,ts,tsx}';
+@source '../node_modules/@repo/**.{js,jsx,ts,tsx}';
 @theme inline {
   /* color */
   --color-warning: var(--warning);

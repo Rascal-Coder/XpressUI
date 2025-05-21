@@ -1,7 +1,145 @@
 ---
 title: Button
-description: Test Button
-icon: SquareChartGantt
+description: 按钮组件用于触发操作或事件，如提交表单、打开对话框、取消操作或执行删除操作等。
+icon: Check
 ---
 
+## 示例
+
 <Preview path="button"/>
+
+## 下载
+
+<Installer packageName="button" />
+
+### 基本用法
+
+```tsx
+import { Button } from '@repo/button'
+
+export default function Example() {
+  return (
+    <Button>点击我</Button>
+  )
+}
+```
+
+### 按钮变体
+
+按钮组件支持以下变体：
+
+- `solid` - 实心按钮（默认）
+- `outline` - 描边按钮
+- `dashed` - 虚线按钮
+- `soft` - 柔和按钮
+- `ghost` - 幽灵按钮
+- `link` - 链接按钮
+- `plain` - 朴素按钮
+
+```tsx
+<Button variant="solid">实心按钮</Button>
+<Button variant="outline">描边按钮</Button>
+<Button variant="dashed">虚线按钮</Button>
+<Button variant="soft">柔和按钮</Button>
+<Button variant="ghost">幽灵按钮</Button>
+<Button variant="link">链接按钮</Button>
+<Button variant="plain">朴素按钮</Button>
+```
+
+### 按钮颜色
+
+支持以下颜色选项：
+
+- `primary` - 主要按钮（默认）
+- `secondary` - 次要按钮
+- `accent` - 强调按钮
+- `destructive` - 危险按钮
+- `success` - 成功按钮
+- `warning` - 警告按钮
+- `info` - 信息按钮
+- `carbon` - 碳色按钮
+
+```tsx
+<Button buttonColor="primary">主要按钮</Button>
+<Button buttonColor="secondary">次要按钮</Button>
+<Button buttonColor="accent">强调按钮</Button>
+<Button buttonColor="destructive">危险按钮</Button>
+<Button buttonColor="success">成功按钮</Button>
+<Button buttonColor="warning">警告按钮</Button>
+<Button buttonColor="info">信息按钮</Button>
+<Button buttonColor="carbon">碳色按钮</Button>
+```
+
+### 按钮尺寸
+
+支持以下尺寸选项：
+
+- `xs` - 超小尺寸
+- `sm` - 小尺寸
+- `md` - 中等尺寸（默认）
+- `lg` - 大尺寸
+- `xl` - 超大尺寸
+
+```tsx
+<Button size="xs">超小按钮</Button>
+<Button size="sm">小按钮</Button>
+<Button size="md">中等按钮</Button>
+<Button size="lg">大按钮</Button>
+<Button size="xl">超大按钮</Button>
+```
+
+### 按钮形状
+
+支持以下形状选项：
+
+- `square` - 方形
+- `rounded` - 圆角（默认）
+- `circle` - 圆形
+
+```tsx
+<Button shape="square">方形按钮</Button>
+<Button shape="rounded">圆角按钮</Button>
+<Button shape="circle">圆形按钮</Button>
+```
+
+### 带图标的按钮
+
+可以通过 `startIcon` 和 `endIcon` 属性添加图标：
+
+```tsx
+<Button startIcon={<IconComponent />}>带前置图标的按钮</Button>
+<Button endIcon={<IconComponent />}>带后置图标的按钮</Button>
+```
+
+### 加载状态
+
+使用 `isLoading` 属性可以显示加载状态：
+
+```tsx
+<Button isLoading>加载中</Button>
+```
+
+### 禁用状态
+
+使用 `disabled` 属性可以禁用按钮：
+
+```tsx
+<Button disabled>禁用按钮</Button>
+```
+
+## API 参考
+
+### Button 属性
+
+| 属性名 | 类型 | 默认值 | 描述 |
+|--------|------|--------|------|
+| variant | `'solid' \| 'outline' \| 'dashed' \| 'soft' \| 'ghost' \| 'link' \| 'plain'` | `'solid'` | 按钮变体 |
+| buttonColor | `'primary' \| 'secondary' \| 'accent' \| 'destructive' \| 'success' \| 'warning' \| 'info' \| 'carbon'` | `'primary'` | 按钮颜色 |
+| size | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | 按钮尺寸 |
+| shape | `'square' \| 'rounded' \| 'circle'` | `'rounded'` | 按钮形状 |
+| shadow | `'none' \| 'sm' \| 'md' \| 'lg'` | `'sm'` | 按钮阴影 |
+| isLoading | `boolean` | `false` | 是否显示加载状态 |
+| startIcon | `React.ReactNode` | - | 按钮开始位置的图标 |
+| endIcon | `React.ReactNode` | - | 按钮结束位置的图标 |
+| loadingIndicator | `React.ReactNode` | - | 自定义加载指示器 |
+| disabled | `boolean` | `false` | 是否禁用按钮 |

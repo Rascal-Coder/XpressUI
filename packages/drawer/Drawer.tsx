@@ -2,7 +2,6 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import type { Props } from './types';
 
-import { Button as XpressButton } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
   DrawerContext,
@@ -15,6 +14,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { cn } from "@/lib/utils"
+import { Button as XpressButton } from "@repo/button"
 import { useIsMobile, useScrollLock } from '@repo/hooks';
 import { X } from '@repo/icons';
 import { XpressLoading } from '@repo/loading';

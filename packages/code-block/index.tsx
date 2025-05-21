@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -81,6 +80,7 @@ import {
   SiWebassembly,
 } from '@icons-pack/react-simple-icons';
 import { useControllableState } from '@radix-ui/react-use-controllable-state';
+import { Button } from '@repo/button';
 import {
   transformerNotationDiff,
   transformerNotationErrorLevel,
@@ -266,8 +266,8 @@ const highlight = (
   codeToHtml(html, {
     lang: language ?? 'typescript',
     themes: themes ?? {
-      light: 'github-light',
-      dark: 'github-dark-default',
+      light: 'one-light',
+      dark: 'one-dark-pro',
     },
     transformers: [
       transformerNotationDiff({

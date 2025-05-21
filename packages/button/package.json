@@ -1,14 +1,17 @@
 {
-  "name": "@repo/snippet",
+  "name": "@repo/button",
   "version": "0.1.0",
+  "description": "button",
+  "keywords": [],
+  "license": "MIT",
   "private": true,
   "dependencies": {
     "@repo/shadcn-ui": "workspace:*",
-    "@repo/button": "workspace:*",
-    "@repo/icons": "workspace:*",
-    "lucide-react": "^0.503.0",
+    "framer-motion": "^12.11.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "tailwind-variants": "^1.0.0",
+    "@repo/icons": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^19",

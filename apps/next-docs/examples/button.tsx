@@ -6,35 +6,34 @@ import {
     type ButtonShape,
     type ButtonSize,
     type ButtonVariant,
-} from '@/components/ui/button';
-import { LoaderCircle } from '@repo/icons';
+} from '@repo/button';
 
 import { useState } from 'react';
 
 // 自定义加载指示器组件
-// const LoadingSpinner = () => (
-//   <svg
-//     className="h-5 w-5 animate-spin"
-//     fill="none"
-//     viewBox="0 0 24 24"
-//     xmlns="http://www.w3.org/2000/svg"
-//   >
-//     <title>加载中</title>
-//     <circle
-//       className="opacity-25"
-//       cx="12"
-//       cy="12"
-//       r="10"
-//       stroke="currentColor"
-//       strokeWidth="4"
-//     />
-//     <path
-//       className="opacity-75"
-//       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-//       fill="currentColor"
-//     />
-//   </svg>
-// );
+const LoadingSpinner = () => (
+    <svg
+        className="h-5 w-5 animate-spin"
+        fill="none"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <title>加载中</title>
+        <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+        />
+        <path
+            className="opacity-75"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            fill="currentColor"
+        />
+    </svg>
+);
 
 // 简单的图标组件
 const PlusIcon = () => (
@@ -67,7 +66,7 @@ const CheckIcon = () => (
     </svg>
 );
 
-function Demo() {
+function ButtonExample() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleLoadingClick = () => {
@@ -216,15 +215,14 @@ function Demo() {
                 <div className="flex flex-wrap gap-2">
                     <Button
                         isLoading={isLoading}
-                        loadingIndicator={<LoaderCircle className='mr-2 size-4 flex-shrink-0 animate-spin text-md' />}
+                        loadingIndicator={<LoadingSpinner />}
                         onClick={handleLoadingClick}
                     >
-                        {isLoading ? '加载中...' : '点击加载'}
+                        {isLoading ? '加载中...' : '点击加载自定义指示器'}
                     </Button>
                     <Button
                         buttonColor="success"
                         isLoading={isLoading}
-                        loadingIndicator={<LoaderCircle className='mr-2 size-4 flex-shrink-0 animate-spin text-md' />}
                         onClick={handleLoadingClick}
                         startIcon={<CheckIcon />}
                         variant="soft"
@@ -402,4 +400,4 @@ function Demo() {
     );
 }
 
-export default Demo;
+export default ButtonExample;

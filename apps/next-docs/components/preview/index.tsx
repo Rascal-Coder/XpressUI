@@ -1,15 +1,18 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { CodeIcon, EyeIcon } from '@repo/icons';
 import {
     Tabs,
     TabsContent,
     TabsList,
     TabsTrigger,
-} from '@repo/shadcn-ui/components/ui/tabs';
-import { cn } from '@repo/shadcn-ui/lib/utils';
+} from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { CodeIcon, EyeIcon } from '@repo/icons';
 import { PreviewCode } from './code';
+import { FullscreenButton } from './fullscreen-button';
+import { FullscreenProvider } from './fullscreen-context';
 import { PreviewRender } from './render';
+
 type PreviewProps = {
     path: string;
     className?: string;
@@ -34,40 +37,46 @@ export const Preview = async ({
         .replace(/@repo\//g, '@/components/ui/xpress-ui/');
 
     return (
-        <div
-            className={cn(
-                'not-prose size-full max-h-[32rem] overflow-hidden rounded-lg border bg-background',
-                className
-            )}
-        >
-            <Tabs defaultValue="preview" className="size-full gap-0">
-                <TabsList className="w-full rounded-none border-b">
-                    <TabsTrigger value="code">
-                        <CodeIcon size={16} className="text-muted-foreground" />
-                        Code
-                    </TabsTrigger>
-                    <TabsTrigger value="preview">
-                        <EyeIcon size={16} className="text-muted-foreground" />
-                        Preview
-                    </TabsTrigger>
-                </TabsList>
-                <TabsContent
-                    value="code"
-                    className="size-full overflow-y-auto bg-background"
-                >
-                    <PreviewCode code={parsedCode} language="tsx" filename="index.tsx" />
-                </TabsContent>
-                <TabsContent
-                    value="preview"
-                    className={cn(
-                        'not-fumadocs-codeblock size-full overflow-auto',
-                    )}
-                >
-                    <PreviewRender>
-                        <Component />
-                    </PreviewRender>
-                </TabsContent>
-            </Tabs>
-        </div>
+        <FullscreenProvider>
+            <div
+                className={cn(
+                    'not-prose size-full max-h-[32rem] overflow-hidden rounded-lg border bg-background',
+                    className
+                )}
+            >
+                <Tabs defaultValue="preview" className="size-full gap-0">
+                    <TabsList className="w-full rounded-none border-b">
+                        <TabsTrigger value="code">
+                            <CodeIcon size={16} className="text-muted-foreground" />
+                            Code
+                        </TabsTrigger>
+                        <TabsTrigger value="preview">
+                            <EyeIcon size={16} className="text-muted-foreground" />
+                            Preview
+                        </TabsTrigger>
+                        <div className="ml-auto">
+                            <FullscreenButton />
+                        </div>
+                    </TabsList>
+                    <TabsContent
+                        value="code"
+                        className="size-full overflow-y-auto bg-background"
+                    >
+                        <PreviewCode code={parsedCode} language="tsx" filename="index.tsx" />
+                    </TabsContent>
+                    <TabsContent
+                        value="preview"
+                        className={cn(
+                            'size-full overflow-auto',
+                        )}
+                        id='xpress-code-preview'
+                    >
+                        <PreviewRender>
+                            <Component />
+                        </PreviewRender>
+                    </TabsContent>
+                </Tabs>
+            </div>
+        </FullscreenProvider>
     );
 };
