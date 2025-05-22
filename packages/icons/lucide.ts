@@ -1,4 +1,9 @@
 export {
+  LinkIcon,
+  ChevronRightIcon,
+  PlusIcon,
+  TrashIcon,
+  CircleIcon,
   CopyIcon,
   ChevronUp,
   ArrowDown,

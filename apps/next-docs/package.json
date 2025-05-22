@@ -10,9 +10,11 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.8.0",
     "@repo/button": "workspace:*",
     "@repo/code-block": "workspace:*",
     "@repo/drawer": "workspace:*",
+    "@repo/gantt": "workspace:*",
     "@repo/icons": "workspace:*",
     "@repo/modal": "workspace:*",
     "@repo/scroll-area": "workspace:*",
@@ -26,6 +28,7 @@
     "fumadocs-typescript": "^4.0.3",
     "fumadocs-ui": "15.3.2",
     "geist": "^1.4.1",
+    "lodash.groupby": "^4.6.0",
     "next": "15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -37,6 +40,7 @@
   },
   "devDependencies": {
     "@types/culori": "^4.0.0",
+    "@types/lodash.groupby": "^4.6.9",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
