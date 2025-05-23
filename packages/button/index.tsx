@@ -10,6 +10,7 @@ import { tv } from 'tailwind-variants';
 const buttonVariants = tv({
   base: [
     'inline-flex items-center justify-center font-medium transition-all-200',
+    'disabled:opacity-50 disabled:cursor-not-allowed',
   ],
   compoundVariants: [
     {
@@ -326,6 +327,9 @@ const buttonVariants = tv({
       secondary: `focus-visible:ring-secondary-foreground/20`,
       success: `focus-visible:ring-success`,
       warning: `focus-visible:ring-warning`,
+    },
+    disabled: {
+      true: '',
     },
     fitContent: {
       true: 'w-fit! h-fit! p-0.5',

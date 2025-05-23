@@ -40,6 +40,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -70,6 +71,7 @@ export type GanttFeature = {
   startAt: Date;
   endAt: Date;
   status: GanttStatus;
+  progress: number; // 0-100 的进度值
 };
 
 export type GanttMarkerProps = {
@@ -78,7 +80,7 @@ export type GanttMarkerProps = {
   label: string;
 };
 
-export type Range = 'daily' | 'monthly' | 'quarterly';
+export type Range = 'daily' | 'weekly' | 'monthly';
 
 export type TimelineData = {
   year: number;
@@ -103,64 +105,80 @@ export type GanttContextProps = {
 };
 
 const getsDaysIn = (range: Range) => {
-  // For when range is daily
-  let fn = (_date: Date) => 1;
-
-  if (range === 'monthly' || range === 'quarterly') {
-    fn = getDaysInMonth;
+  switch (range) {
+    case 'weekly':
+      return () => 7; // 7天
+    case 'monthly':
+      return getDaysInMonth;
+    default:
+      return () => 1;
   }
-
-  return fn;
 };
 
 const getDifferenceIn = (range: Range) => {
-  let fn = differenceInDays;
-
-  if (range === 'monthly' || range === 'quarterly') {
-    fn = differenceInMonths;
+  switch (range) {
+    case 'weekly':
+      return (date1: Date | number | string, date2: Date | number | string) =>
+        Math.floor(differenceInDays(date1, date2) / 7);
+    case 'monthly':
+      return differenceInMonths;
+    default:
+      return differenceInDays;
   }
-
-  return fn;
 };
 
 const getInnerDifferenceIn = (range: Range) => {
-  let fn = differenceInHours;
-
-  if (range === 'monthly' || range === 'quarterly') {
-    fn = differenceInDays;
+  switch (range) {
+    case 'weekly':
+      return (date1: Date | number | string, date2: Date | number | string) =>
+        differenceInDays(date1, date2) % 7;
+    case 'monthly':
+      return differenceInDays;
+    default:
+      return differenceInHours;
   }
-
-  return fn;
 };
 
 const getStartOf = (range: Range) => {
-  let fn = startOfDay;
-
-  if (range === 'monthly' || range === 'quarterly') {
-    fn = startOfMonth;
+  switch (range) {
+    case 'weekly':
+      return (date: Date | number | string) => {
+        const d = new Date(date);
+        const day = d.getDay();
+        return addDays(startOfDay(d), -day);
+      };
+    case 'monthly':
+      return startOfMonth;
+    default:
+      return startOfDay;
   }
-
-  return fn;
 };
 
 const getEndOf = (range: Range) => {
-  let fn = endOfDay;
-
-  if (range === 'monthly' || range === 'quarterly') {
-    fn = endOfMonth;
+  switch (range) {
+    case 'weekly':
+      return (date: Date | number | string) => {
+        const d = new Date(date);
+        const day = d.getDay();
+        return addDays(endOfDay(d), 6 - day);
+      };
+    case 'monthly':
+      return endOfMonth;
+    default:
+      return endOfDay;
   }
-
-  return fn;
 };
 
 const getAddRange = (range: Range) => {
-  let fn = addDays;
-
-  if (range === 'monthly' || range === 'quarterly') {
-    fn = addMonths;
+  switch (range) {
+    case 'weekly':
+      return (date: Date | number | string, amount: number) =>
+        addDays(new Date(date), amount * 7);
+    case 'monthly':
+      return addMonths;
+    default:
+      return addDays;
   }
-
-  return fn;
 };
 
 const getDateByMousePosition = (context: GanttContextProps, mouseX: number) => {
@@ -178,96 +196,116 @@ const getDateByMousePosition = (context: GanttContextProps, mouseX: number) => {
   return actualDate;
 };
 
+const dateCalculationCache = new Map<string, number>();
+
+const memoizedCalculation = (key: string, calculation: () => number) => {
+  if (!dateCalculationCache.has(key)) {
+    dateCalculationCache.set(key, calculation());
+  }
+  return dateCalculationCache.get(key) as number;
+};
+
+const getWidth = (startAt: Date, endAt: Date | null, context: GanttContextProps) => {
+  const cacheKey = `width-${startAt.getTime()}-${endAt?.getTime() ?? 'null'}-${context.range}-${context.columnWidth}-${context.zoom}`;
+
+  return memoizedCalculation(cacheKey, () => {
+    const parsedColumnWidth = (context.columnWidth * context.zoom) / 100;
+
+    if (!endAt) {
+      return parsedColumnWidth * 2;
+    }
+
+    const differenceIn = getDifferenceIn(context.range);
+
+    if (context.range === 'daily') {
+      const delta = differenceIn(endAt, startAt);
+      return parsedColumnWidth * (delta ? delta : 1);
+    }
+
+    const daysInStartMonth = getDaysInMonth(startAt);
+    const pixelsPerDayInStartMonth = parsedColumnWidth / daysInStartMonth;
+
+    if (isSameDay(startAt, endAt)) {
+      return pixelsPerDayInStartMonth;
+    }
+
+    const innerDifferenceIn = getInnerDifferenceIn(context.range);
+    const startOf = getStartOf(context.range);
+
+    if (isSameDay(startOf(startAt), startOf(endAt))) {
+      return innerDifferenceIn(endAt, startAt) * pixelsPerDayInStartMonth;
+    }
+
+    const startRangeOffset = daysInStartMonth - getDate(startAt);
+    const endRangeOffset = getDate(endAt);
+    const fullRangeOffset = differenceIn(startOf(endAt), startOf(startAt));
+    const daysInEndMonth = getDaysInMonth(endAt);
+    const pixelsPerDayInEndMonth = parsedColumnWidth / daysInEndMonth;
+
+    return (
+      (fullRangeOffset - 1) * parsedColumnWidth +
+      startRangeOffset * pixelsPerDayInStartMonth +
+      endRangeOffset * pixelsPerDayInEndMonth
+    );
+  });
+};
+
+const getOffset = (date: Date, timelineStartDate: Date, context: GanttContextProps) => {
+  const cacheKey = `offset-${date.getTime()}-${timelineStartDate.getTime()}-${context.range}-${context.columnWidth}-${context.zoom}`;
+
+  return memoizedCalculation(cacheKey, () => {
+    const parsedColumnWidth = (context.columnWidth * context.zoom) / 100;
+    const differenceIn = getDifferenceIn(context.range);
+    const startOf = getStartOf(context.range);
+    const fullColumns = differenceIn(startOf(date), timelineStartDate);
+
+    if (context.range === 'daily') {
+      return parsedColumnWidth * fullColumns;
+    }
+
+    const partialColumns = date.getDate();
+    const daysInMonth = getDaysInMonth(date);
+    const pixelsPerDay = parsedColumnWidth / daysInMonth;
+
+    return fullColumns * parsedColumnWidth + partialColumns * pixelsPerDay;
+  });
+};
+
+setInterval(() => {
+  dateCalculationCache.clear();
+}, 60000);
+
 const createInitialTimelineData = (today: Date) => {
   const data: TimelineData = [];
+  const currentYear = today.getFullYear();
 
-  data.push(
-    { year: today.getFullYear() - 1, quarters: new Array(4).fill(null) },
-    { year: today.getFullYear(), quarters: new Array(4).fill(null) },
-    { year: today.getFullYear() + 1, quarters: new Array(4).fill(null) }
-  );
+  // 只创建当前月份和下个月的数据
+  const months = [today.getMonth(), (today.getMonth() + 1) % 12];
+  const years = months[1] === 0 ? [currentYear, currentYear + 1] : [currentYear];
 
-  for (const yearObj of data) {
-    yearObj.quarters = new Array(4).fill(null).map((_, quarterIndex) => ({
-      months: new Array(3).fill(null).map((_, monthIndex) => {
-        const month = quarterIndex * 3 + monthIndex;
-        return {
-          days: getDaysInMonth(new Date(yearObj.year, month, 1)),
-        };
-      }),
-    }));
+  for (const year of years) {
+    data.push({
+      year,
+      quarters: new Array(4).fill(null).map((_, quarterIndex) => ({
+        months: new Array(3).fill(null).map((_, monthIndex) => {
+          const month = quarterIndex * 3 + monthIndex;
+          // 只返回我们需要的月份的数据
+          if (months.includes(month)) {
+            return {
+              days: getDaysInMonth(new Date(year, month, 1)),
+            };
+          }
+          // 其他月份返回空数据
+          return { days: 0 };
+        }),
+      })),
+    });
   }
 
   return data;
 };
 
-const getOffset = (
-  date: Date,
-  timelineStartDate: Date,
-  context: GanttContextProps
-) => {
-  const parsedColumnWidth = (context.columnWidth * context.zoom) / 100;
-  const differenceIn = getDifferenceIn(context.range);
-  const startOf = getStartOf(context.range);
-  const fullColumns = differenceIn(startOf(date), timelineStartDate);
-
-  if (context.range === 'daily') {
-    return parsedColumnWidth * fullColumns;
-  }
-
-  const partialColumns = date.getDate();
-  const daysInMonth = getDaysInMonth(date);
-  const pixelsPerDay = parsedColumnWidth / daysInMonth;
-
-  return fullColumns * parsedColumnWidth + partialColumns * pixelsPerDay;
-};
-
-const getWidth = (
-  startAt: Date,
-  endAt: Date | null,
-  context: GanttContextProps
-) => {
-  const parsedColumnWidth = (context.columnWidth * context.zoom) / 100;
-
-  if (!endAt) {
-    return parsedColumnWidth * 2;
-  }
-
-  const differenceIn = getDifferenceIn(context.range);
-
-  if (context.range === 'daily') {
-    const delta = differenceIn(endAt, startAt);
-
-    return parsedColumnWidth * (delta ? delta : 1);
-  }
-
-  const daysInStartMonth = getDaysInMonth(startAt);
-  const pixelsPerDayInStartMonth = parsedColumnWidth / daysInStartMonth;
-
-  if (isSameDay(startAt, endAt)) {
-    return pixelsPerDayInStartMonth;
-  }
-
-  const innerDifferenceIn = getInnerDifferenceIn(context.range);
-  const startOf = getStartOf(context.range);
-
-  if (isSameDay(startOf(startAt), startOf(endAt))) {
-    return innerDifferenceIn(endAt, startAt) * pixelsPerDayInStartMonth;
-  }
-
-  const startRangeOffset = daysInStartMonth - getDate(startAt);
-  const endRangeOffset = getDate(endAt);
-  const fullRangeOffset = differenceIn(startOf(endAt), startOf(startAt));
-  const daysInEndMonth = getDaysInMonth(endAt);
-  const pixelsPerDayInEndMonth = parsedColumnWidth / daysInEndMonth;
-
-  return (
-    (fullRangeOffset - 1) * parsedColumnWidth +
-    startRangeOffset * pixelsPerDayInStartMonth +
-    endRangeOffset * pixelsPerDayInEndMonth
-  );
-};
-
+// 计算日期在时间单位内的偏移量
 const calculateInnerOffset = (
   date: Date,
   range: Range,
@@ -284,6 +322,7 @@ const calculateInnerOffset = (
   return (dayOfMonth / totalRangeDays) * columnWidth;
 };
 
+// 创建甘特图上下文
 const GanttContext = createContext<GanttContextProps>({
   zoom: 100,
   range: 'monthly',
@@ -297,12 +336,14 @@ const GanttContext = createContext<GanttContextProps>({
   ref: null,
 });
 
+// 甘特图内容头部组件属性
 export type GanttContentHeaderProps = {
   renderHeaderItem: (index: number) => ReactNode;
   title: string;
   columns: number;
 };
 
+// 甘特图内容头部组件
 export const GanttContentHeader: FC<GanttContentHeaderProps> = ({
   title,
   columns,
@@ -344,6 +385,44 @@ export const GanttContentHeader: FC<GanttContentHeaderProps> = ({
   );
 };
 
+// 周视图头部组件
+const WeeklyHeader: FC = () => {
+  const gantt = useContext(GanttContext);
+
+  return gantt.timelineData.map((year) =>
+    year.quarters
+      .flatMap((quarter) => quarter.months)
+      .map((month, monthIndex) => {
+        const startDate = new Date(year.year, monthIndex, 1);
+        const daysInMonth = getDaysInMonth(startDate);
+        const weeksInMonth = Math.ceil(daysInMonth / 7);
+
+        return (
+          <div className="relative flex flex-col" key={`${year.year}-${monthIndex}`}>
+            <GanttContentHeader
+              title={format(startDate, 'MMMM yyyy')}
+              columns={weeksInMonth}
+              renderHeaderItem={(weekIndex: number) => {
+                const weekStart = addDays(startDate, weekIndex * 7);
+                const weekEnd = addDays(weekStart, 6);
+                return (
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <p>Week {weekIndex + 1}</p>
+                    <p className="text-muted-foreground">
+                      {format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d')}
+                    </p>
+                  </div>
+                );
+              }}
+            />
+            <GanttColumns columns={weeksInMonth} />
+          </div>
+        );
+      })
+  );
+};
+
+// 日视图头部组件
 const DailyHeader: FC = () => {
   const gantt = useContext(GanttContext);
 
@@ -382,6 +461,7 @@ const DailyHeader: FC = () => {
   );
 };
 
+// 月视图头部组件
 const MonthlyHeader: FC = () => {
   const gantt = useContext(GanttContext);
 
@@ -391,7 +471,7 @@ const MonthlyHeader: FC = () => {
         title={`${year.year}`}
         columns={year.quarters.flatMap((quarter) => quarter.months).length}
         renderHeaderItem={(item: number) => (
-          <p>{format(new Date(year.year, item, 1), 'MMM')}</p>
+          <p key={`${year.year}-${item}`}>{format(new Date(year.year, item, 1), 'MMM')}</p>
         )}
       />
       <GanttColumns
@@ -401,40 +481,19 @@ const MonthlyHeader: FC = () => {
   ));
 };
 
-const QuarterlyHeader: FC = () => {
-  const gantt = useContext(GanttContext);
-
-  return gantt.timelineData.map((year) =>
-    year.quarters.map((quarter, quarterIndex) => (
-      <div
-        className="relative flex flex-col"
-        key={`${year.year}-${quarterIndex}`}
-      >
-        <GanttContentHeader
-          title={`Q${quarterIndex + 1} ${year.year}`}
-          columns={quarter.months.length}
-          renderHeaderItem={(item: number) => (
-            <p>
-              {format(new Date(year.year, quarterIndex * 3 + item, 1), 'MMM')}
-            </p>
-          )}
-        />
-        <GanttColumns columns={quarter.months.length} />
-      </div>
-    ))
-  );
-};
-
+// 更新头部组件映射表
 const headers: Record<Range, FC> = {
   daily: DailyHeader,
+  weekly: WeeklyHeader,
   monthly: MonthlyHeader,
-  quarterly: QuarterlyHeader,
 };
 
+// 甘特图头部组件属性
 export type GanttHeaderProps = {
   className?: string;
 };
 
+// 甘特图头部组件
 export const GanttHeader: FC<GanttHeaderProps> = ({ className }) => {
   const gantt = useContext(GanttContext);
   const Header = headers[gantt.range];
@@ -451,12 +510,14 @@ export const GanttHeader: FC<GanttHeaderProps> = ({ className }) => {
   );
 };
 
+// 甘特图侧边栏项目组件属性
 export type GanttSidebarItemProps = {
   feature: GanttFeature;
   onSelectItem?: (id: string) => void;
   className?: string;
 };
 
+// 甘特图侧边栏项目组件
 export const GanttSidebarItem: FC<GanttSidebarItemProps> = ({
   feature,
   onSelectItem,
@@ -470,66 +531,75 @@ export const GanttSidebarItem: FC<GanttSidebarItemProps> = ({
     ? formatDistance(feature.startAt, tempEndAt)
     : `${formatDistance(feature.startAt, new Date())} so far`;
 
-  const handleClick: MouseEventHandler<HTMLDivElement> = (event) => {
+  const handleClick: MouseEventHandler<HTMLButtonElement> = (event) => {
     if (event.target === event.currentTarget) {
       onSelectItem?.(feature.id);
     }
   };
 
-  const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
+  const handleKeyDown: KeyboardEventHandler<HTMLButtonElement> = (event) => {
     if (event.key === 'Enter') {
       onSelectItem?.(feature.id);
     }
   };
 
   return (
-    <div
-      // biome-ignore lint/a11y/useSemanticElements: <explanation>
-      role="button"
+    <button
+      type="button"
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      tabIndex={0}
       key={feature.id}
       className={cn(
-        'relative flex items-center gap-2.5 p-2.5 text-xs',
+        'group relative flex w-full items-center px-4 py-2 text-xs transition-colors hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1',
         className
       )}
       style={{
         height: 'var(--gantt-row-height)',
       }}
     >
-      {/* <Checkbox onCheckedChange={handleCheck} className="shrink-0" /> */}
-      <div
-        className="pointer-events-none h-2 w-2 shrink-0 rounded-full"
-        style={{
-          backgroundColor: feature.status.color,
-        }}
-      />
-      <p className="pointer-events-none flex-1 truncate text-left font-medium">
-        {feature.name}
-      </p>
-      <p className="pointer-events-none text-muted-foreground">{duration}</p>
-    </div>
+      <div className='flex min-w-0 flex-1 items-center gap-3'>
+        <div
+          className='pointer-events-none h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-background'
+          style={{
+            backgroundColor: feature.status.color,
+          }}
+        />
+        <p className='pointer-events-none truncate font-medium'>
+          {feature.name}
+        </p>
+      </div>
+      <div className='ml-1 flex items-center justify-between' style={{ width: '120px' }}>
+        <span className='pointer-events-none text-right text-muted-foreground'>{duration}</span>
+        <span className='pointer-events-none text-right font-medium' style={{ color: feature.status.color }}>{feature.progress.toFixed(0)}%</span>
+      </div>
+    </button>
   );
 };
 
+// 甘特图侧边栏头部组件
 export const GanttSidebarHeader: FC = () => (
   <div
-    className="sticky top-0 z-10 flex shrink-0 items-end justify-between gap-2.5 border-border/50 border-b bg-backdrop/90 p-2.5 font-medium text-muted-foreground text-xs backdrop-blur-sm"
+    className='sticky top-0 z-10 flex shrink-0 items-center border-border/50 border-b bg-backdrop/90 px-4 py-2 font-medium text-muted-foreground text-xs backdrop-blur-sm'
     style={{ height: 'var(--gantt-header-height)' }}
   >
-    {/* <Checkbox className="shrink-0" /> */}
-    <p className="flex-1 truncate text-left">Issues</p>
-    <p className="shrink-0">Duration</p>
+    <div className="flex min-w-0 max-w-[170px] flex-1 items-center">
+      <span className="truncate font-semibold text-foreground">Issues</span>
+    </div>
+    <div className='flex shrink-0 items-center gap-8'>
+      <span className="w-[120px] text-right">Duration</span>
+      <span className="w-16 text-right">Progress</span>
+    </div>
   </div>
 );
 
+// 甘特图侧边栏分组组件属性
 export type GanttSidebarGroupProps = {
   children: ReactNode;
   name: string;
   className?: string;
 };
 
+// 甘特图侧边栏分组组件
 export const GanttSidebarGroup: FC<GanttSidebarGroupProps> = ({
   children,
   name,
@@ -546,11 +616,13 @@ export const GanttSidebarGroup: FC<GanttSidebarGroupProps> = ({
   </div>
 );
 
+// 甘特图侧边栏组件属性
 export type GanttSidebarProps = {
   children: ReactNode;
   className?: string;
 };
 
+// 甘特图侧边栏组件
 export const GanttSidebar: FC<GanttSidebarProps> = ({
   children,
   className,
@@ -567,11 +639,13 @@ export const GanttSidebar: FC<GanttSidebarProps> = ({
   </div>
 );
 
+// 甘特图添加功能助手组件属性
 export type GanttAddFeatureHelperProps = {
   top: number;
   className?: string;
 };
 
+// 甘特图添加功能助手组件
 export const GanttAddFeatureHelper: FC<GanttAddFeatureHelperProps> = ({
   top,
   className,
@@ -580,6 +654,7 @@ export const GanttAddFeatureHelper: FC<GanttAddFeatureHelperProps> = ({
   const gantt = useContext(GanttContext);
   const [mousePosition, mouseRef] = useMouse<HTMLDivElement>();
 
+  // 处理点击添加功能
   const handleClick = () => {
     const ganttRect = gantt.ref?.current?.getBoundingClientRect();
     const x =
@@ -612,11 +687,13 @@ export const GanttAddFeatureHelper: FC<GanttAddFeatureHelperProps> = ({
   );
 };
 
+// 甘特图列组件属性
 export type GanttColumnProps = {
   index: number;
   isColumnSecondary?: (item: number) => boolean;
 };
 
+// 甘特图列组件
 export const GanttColumn: FC<GanttColumnProps> = ({
   index,
   isColumnSecondary,
@@ -638,10 +715,9 @@ export const GanttColumn: FC<GanttColumnProps> = ({
   );
 
   return (
-    // biome-ignore lint/nursery/noStaticElementInteractions: <explanation>
     <div
       className={cn(
-        'group relative h-full overflow-hidden',
+        'group relative h-full overflow-hidden border-border/50 border-r',
         isColumnSecondary?.(index) ? 'bg-secondary' : ''
       )}
       ref={mouseRef}
@@ -655,11 +731,13 @@ export const GanttColumn: FC<GanttColumnProps> = ({
   );
 };
 
+// 甘特图列组属性
 export type GanttColumnsProps = {
   columns: number;
   isColumnSecondary?: (item: number) => boolean;
 };
 
+// 甘特图列组组件
 export const GanttColumns: FC<GanttColumnsProps> = ({
   columns,
   isColumnSecondary,
@@ -668,7 +746,7 @@ export const GanttColumns: FC<GanttColumnsProps> = ({
 
   return (
     <div
-      className="divide grid h-full w-full divide-x divide-border/50"
+      className='divide grid h-full w-full border-border/50 border-t border-l'
       style={{
         gridTemplateColumns: `repeat(${columns}, var(--gantt-column-width))`,
       }}
@@ -684,11 +762,13 @@ export const GanttColumns: FC<GanttColumnsProps> = ({
   );
 };
 
+// 甘特图创建标记触发器组件属性
 export type GanttCreateMarkerTriggerProps = {
   onCreateMarker: (date: Date) => void;
   className?: string;
 };
 
+// 甘特图创建标记触发器组件
 export const GanttCreateMarkerTrigger: FC<GanttCreateMarkerTriggerProps> = ({
   onCreateMarker,
   className,
@@ -696,6 +776,8 @@ export const GanttCreateMarkerTrigger: FC<GanttCreateMarkerTriggerProps> = ({
   const gantt = useContext(GanttContext);
   const [mousePosition, mouseRef] = useMouse<HTMLDivElement>();
   const [windowScroll] = useWindowScroll();
+
+  // 计算鼠标水平位置
   const x = useThrottle(
     mousePosition.x -
     (mouseRef.current?.getBoundingClientRect().x ?? 0) -
@@ -734,12 +816,14 @@ export const GanttCreateMarkerTrigger: FC<GanttCreateMarkerTriggerProps> = ({
   );
 };
 
+// 甘特图功能拖拽助手组件属性
 export type GanttFeatureDragHelperProps = {
   featureId: GanttFeature['id'];
   direction: 'left' | 'right';
   date: Date | null;
 };
 
+// 甘特图功能拖拽助手组件
 export const GanttFeatureDragHelper: FC<GanttFeatureDragHelperProps> = ({
   direction,
   featureId,
@@ -752,6 +836,7 @@ export const GanttFeatureDragHelper: FC<GanttFeatureDragHelperProps> = ({
 
   const isPressed = Boolean(attributes['aria-pressed']);
 
+  // 更新拖拽状态
   useEffect(() => setDragging(isPressed), [isPressed, setDragging]);
 
   return (
@@ -788,13 +873,19 @@ export const GanttFeatureDragHelper: FC<GanttFeatureDragHelperProps> = ({
   );
 };
 
+// 甘特图功能项卡片组件属性
 export type GanttFeatureItemCardProps = Pick<GanttFeature, 'id'> & {
   children?: ReactNode;
+  progress?: number;
+  status?: GanttStatus;
 };
 
+// 甘特图功能项卡片组件
 export const GanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
   id,
   children,
+  progress = 0,
+  status,
 }) => {
   const [, setDragging] = useGanttDragging();
   const { attributes, listeners, setNodeRef } = useDraggable({ id });
@@ -802,11 +893,30 @@ export const GanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
 
   useEffect(() => setDragging(isPressed), [isPressed, setDragging]);
 
+  // 计算进度条颜色
+  const progressColor = status?.color ? `${status.color}33` : 'rgba(0,200,0,0.1)'; // 33 是十六进制的 20% 透明度
+  const progressColorAlt = status?.color ? `${status.color}66` : 'rgba(0,200,0,0.2)'; // 66 是十六进制的 40% 透明度
+
   return (
-    <Card className="h-full w-full rounded-md bg-background p-2 text-xs shadow-sm">
+    <Card className="relative h-full w-full overflow-hidden rounded-md bg-background p-2 text-xs shadow-sm">
+      {/* 进度条背景 */}
+      <div
+        className="absolute inset-0 bg-gradient-to-r from-transparent to-transparent"
+        style={{
+          backgroundImage: `repeating-linear-gradient(
+            45deg,
+            ${progressColor},
+            ${progressColor} 10px,
+            ${progressColorAlt} 10px,
+            ${progressColorAlt} 20px
+          )`,
+          width: `${progress}%`,
+          opacity: 0.5,
+        }}
+      />
       <div
         className={cn(
-          'flex h-full w-full items-center justify-between gap-2 text-left',
+          'relative flex h-full w-full items-center justify-between gap-2 text-left',
           isPressed && 'cursor-grabbing'
         )}
         {...attributes}
@@ -819,16 +929,24 @@ export const GanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
   );
 };
 
+// 甘特图功能项组件属性
 export type GanttFeatureItemProps = GanttFeature & {
   onMove?: (id: string, startDate: Date, endDate: Date | null) => void;
   children?: ReactNode;
   className?: string;
+  progress?: number;
+  status?: GanttStatus;
+  level?: number;
 };
 
+// 甘特图功能项组件
 export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
   onMove,
   children,
   className,
+  progress = 0,
+  status,
+  level = 0,
   ...feature
 }) => {
   const [scrollX] = useGanttScrollX();
@@ -836,63 +954,89 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
   const timelineStartDate = new Date(gantt.timelineData.at(0)?.year ?? 0, 0, 1);
   const [startAt, setStartAt] = useState<Date>(feature.startAt);
   const [endAt, setEndAt] = useState<Date | null>(feature.endAt);
-  const width = getWidth(startAt, endAt, gantt);
-  const offset = getOffset(startAt, timelineStartDate, gantt);
+  const width = useMemo(() => getWidth(startAt, endAt, gantt), [startAt, endAt, gantt]);
+  const offset = useMemo(() => getOffset(startAt, timelineStartDate, gantt), [startAt, timelineStartDate, gantt]);
   const addRange = getAddRange(gantt.range);
+  const mouseRef = useRef({ x: 0, y: 0 });
   const [mousePosition] = useMouse<HTMLDivElement>();
+  const stableId = useId();
 
-  const [previousMouseX, setPreviousMouseX] = useState(0);
-  const [previousStartAt, setPreviousStartAt] = useState(startAt);
-  const [previousEndAt, setPreviousEndAt] = useState(endAt);
+  // 计算缩进距离
+  const indentation = level * 20; // 每层缩进20px
 
+  // Update mouseRef when mousePosition changes
+  useEffect(() => {
+    mouseRef.current = mousePosition;
+  }, [mousePosition]);
+
+  // 记录拖拽开始时的状态
+  const dragStateRef = useRef({
+    previousMouseX: 0,
+    previousStartAt: startAt,
+    previousEndAt: endAt
+  });
+
+  // 配置鼠标传感器，增加激活距离以减少误触发
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
       distance: 10,
     },
   });
 
-  const handleItemDragStart = () => {
-    setPreviousMouseX(mousePosition.x);
-    setPreviousStartAt(startAt);
-    setPreviousEndAt(endAt);
-  };
+  // 处理整体拖拽开始
+  const handleItemDragStart = useCallback(() => {
+    dragStateRef.current = {
+      previousMouseX: mouseRef.current.x,
+      previousStartAt: startAt,
+      previousEndAt: endAt
+    };
+  }, [startAt, endAt]);
 
-  const handleItemDragMove = () => {
-    const currentDate = getDateByMousePosition(gantt, mousePosition.x);
-    const originalDate = getDateByMousePosition(gantt, previousMouseX);
+  // 使用防抖处理拖拽移动
+  const handleItemDragMove = useCallback(() => {
+    const currentDate = getDateByMousePosition(gantt, mouseRef.current.x);
+    const originalDate = getDateByMousePosition(gantt, dragStateRef.current.previousMouseX);
     const delta =
       gantt.range === 'daily'
         ? getDifferenceIn(gantt.range)(currentDate, originalDate)
         : getInnerDifferenceIn(gantt.range)(currentDate, originalDate);
-    const newStartDate = addDays(previousStartAt, delta);
-    const newEndDate = previousEndAt ? addDays(previousEndAt, delta) : null;
+    const newStartDate = addDays(dragStateRef.current.previousStartAt, delta);
+    const newEndDate = dragStateRef.current.previousEndAt ? addDays(dragStateRef.current.previousEndAt, delta) : null;
 
     setStartAt(newStartDate);
     setEndAt(newEndDate);
-  };
+  }, [gantt]);
 
-  const onDragEnd = () => onMove?.(feature.id, startAt, endAt);
-  const handleLeftDragMove = () => {
+  // 使用防抖处理左侧拖拽
+  const handleLeftDragMove = useCallback(() => {
     const ganttRect = gantt.ref?.current?.getBoundingClientRect();
     const x =
-      mousePosition.x - (ganttRect?.left ?? 0) + scrollX - gantt.sidebarWidth;
+      mouseRef.current.x - (ganttRect?.left ?? 0) + scrollX - gantt.sidebarWidth;
     const newStartAt = getDateByMousePosition(gantt, x);
-
     setStartAt(newStartAt);
-  };
-  const handleRightDragMove = () => {
+  }, [gantt, scrollX]);
+
+  // 使用防抖处理右侧拖拽
+  const handleRightDragMove = useCallback(() => {
     const ganttRect = gantt.ref?.current?.getBoundingClientRect();
     const x =
-      mousePosition.x - (ganttRect?.left ?? 0) + scrollX - gantt.sidebarWidth;
+      mouseRef.current.x - (ganttRect?.left ?? 0) + scrollX - gantt.sidebarWidth;
     const newEndAt = getDateByMousePosition(gantt, x);
-
     setEndAt(newEndAt);
-  };
+  }, [gantt, scrollX]);
+
+  // 处理拖拽结束
+  const onDragEnd = useCallback(() => {
+    onMove?.(feature.id, startAt, endAt);
+  }, [feature.id, startAt, endAt, onMove]);
 
   return (
     <div
       className={cn('relative flex w-max min-w-full py-0.5', className)}
-      style={{ height: 'var(--gantt-row-height)' }}
+      style={{
+        height: 'var(--gantt-row-height)',
+        marginLeft: `${indentation}px`
+      }}
     >
       <div
         className="pointer-events-auto absolute top-0.5"
@@ -900,10 +1044,12 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
           height: 'calc(var(--gantt-row-height) - 4px)',
           width: Math.round(width),
           left: Math.round(offset),
+          willChange: 'transform, width'
         }}
       >
         {onMove && (
           <DndContext
+            id={`${stableId}-left`}
             sensors={[mouseSensor]}
             modifiers={[restrictToHorizontalAxis]}
             onDragMove={handleLeftDragMove}
@@ -917,13 +1063,18 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
           </DndContext>
         )}
         <DndContext
+          id={`${stableId}-main`}
           sensors={[mouseSensor]}
           modifiers={[restrictToHorizontalAxis]}
           onDragStart={handleItemDragStart}
           onDragMove={handleItemDragMove}
           onDragEnd={onDragEnd}
         >
-          <GanttFeatureItemCard id={feature.id}>
+          <GanttFeatureItemCard
+            id={feature.id}
+            progress={progress}
+            status={status}
+          >
             {children ?? (
               <p className="flex-1 truncate text-xs">{feature.name}</p>
             )}
@@ -931,6 +1082,7 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
         </DndContext>
         {onMove && (
           <DndContext
+            id={`${stableId}-right`}
             sensors={[mouseSensor]}
             modifiers={[restrictToHorizontalAxis]}
             onDragMove={handleRightDragMove}
@@ -948,11 +1100,13 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
   );
 };
 
+// 甘特图功能列表分组组件属性
 export type GanttFeatureListGroupProps = {
   children: ReactNode;
   className?: string;
 };
 
+// 甘特图功能列表分组组件
 export const GanttFeatureListGroup: FC<GanttFeatureListGroupProps> = ({
   children,
   className,
@@ -962,11 +1116,13 @@ export const GanttFeatureListGroup: FC<GanttFeatureListGroupProps> = ({
   </div>
 );
 
+// 甘特图功能列表组件属性
 export type GanttFeatureListProps = {
   className?: string;
   children: ReactNode;
 };
 
+// 甘特图功能列表组件
 export const GanttFeatureList: FC<GanttFeatureListProps> = ({
   className,
   children,
@@ -979,6 +1135,7 @@ export const GanttFeatureList: FC<GanttFeatureListProps> = ({
   </div>
 );
 
+// 甘特图标记组件
 export const GanttMarker: FC<
   GanttMarkerProps & {
     onRemove?: (id: string) => void;
@@ -988,12 +1145,15 @@ export const GanttMarker: FC<
   const gantt = useContext(GanttContext);
   const differenceIn = getDifferenceIn(gantt.range);
   const timelineStartDate = new Date(gantt.timelineData.at(0)?.year ?? 0, 0, 1);
+
+  // 计算标记位置
   const offset = differenceIn(date, timelineStartDate);
   const innerOffset = calculateInnerOffset(
     date,
     gantt.range,
     (gantt.columnWidth * gantt.zoom) / 100
   );
+
   const handleRemove = () => onRemove?.(id);
 
   return (
@@ -1035,6 +1195,7 @@ export const GanttMarker: FC<
   );
 };
 
+
 export type GanttProviderProps = {
   range?: Range;
   zoom?: number;
@@ -1064,10 +1225,16 @@ export const GanttProvider: FC<GanttProviderProps> = ({
   const rowHeight = 36;
   let columnWidth = 50;
 
-  if (range === 'monthly') {
-    columnWidth = 150;
-  } else if (range === 'quarterly') {
-    columnWidth = 100;
+  switch (range) {
+    case 'daily':
+      columnWidth = 50;
+      break;
+    case 'weekly':
+      columnWidth = 120;
+      break;
+    case 'monthly':
+      columnWidth = 150;
+      break;
   }
 
   const cssVariables = {
@@ -1200,11 +1367,13 @@ export const GanttProvider: FC<GanttProviderProps> = ({
   );
 };
 
+// 甘特图时间线组件属性
 export type GanttTimelineProps = {
   children: ReactNode;
   className?: string;
 };
 
+// 甘特图时间线组件
 export const GanttTimeline: FC<GanttTimelineProps> = ({
   children,
   className,
@@ -1219,16 +1388,20 @@ export const GanttTimeline: FC<GanttTimelineProps> = ({
   </div>
 );
 
+// 甘特图今日标记组件属性
 export type GanttTodayProps = {
   className?: string;
 };
 
+// 甘特图今日标记组件
 export const GanttToday: FC<GanttTodayProps> = ({ className }) => {
   const label = 'Today';
   const date = new Date();
   const gantt = useContext(GanttContext);
   const differenceIn = getDifferenceIn(gantt.range);
   const timelineStartDate = new Date(gantt.timelineData.at(0)?.year ?? 0, 0, 1);
+
+  // 计算今日标记位置
   const offset = differenceIn(date, timelineStartDate);
   const innerOffset = calculateInnerOffset(
     date,
